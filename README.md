@@ -1,18 +1,11 @@
 # PQC-Learning-Module-WP1
 
-Pre-requisites : 
-https://github.com/open-quantum-safe/liboqs-python
-sudo apt install build-essential perl ninja-build
+Open Source Tool PQC :
 
-Install Dependencies:
-Run pip install kyber-py cryptography in your Python environment.
-
-kyber-py provides Kyber768 (NIST Level 3, ~AES-192 equivalent).
-
-cryptography provides X25519 for classical ECDH.
-
-Python Version: Tested with Python 3.8+ (March 3, 2025).
-
+1. Open Quantum Safe - liboqs -> https://openquantumsafe.org/liboqs/
+2. TQ42 Crypthography Library -> https://github.com/terra-quantum-public/tq42-pqc-oss
+3. NTRU Cryptosystem -> https://ntru.org/
+4. OpenFHE -> https://github.com/openfheorg
 _______________________________________________________
 
 Implementing Hybrid TLS in OpenSSL (Using OQS-OpenSSL)
