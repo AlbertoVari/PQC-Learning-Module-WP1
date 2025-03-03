@@ -1,15 +1,9 @@
 # PQC-Learning-Module-WP1
 
-git clone --branch OQS-OpenSSL_1_1_1-stable https://github.com/open-quantum-safe/openssl.git
-cd openssl
-./config
-make -j$(nproc)
-sudo make install
-
-Pre-requisites see
+Pre-requisites : 
 https://github.com/open-quantum-safe/liboqs-python
+sudo apt install build-essential perl ninja-build
 
-Prerequisites
 Install Dependencies:
 Run pip install kyber-py cryptography in your Python environment.
 
@@ -22,46 +16,57 @@ Python Version: Tested with Python 3.8+ (March 3, 2025).
 _______________________________________________________
 
 Implementing Hybrid TLS in OpenSSL (Using OQS-OpenSSL)
-🔸 Step 1: Install OpenSSL with PQC Support
-OQS-OpenSSL is a fork of OpenSSL that includes support for Kyber, Dilithium, Falcon, and other PQC algorithms.
 
-🔹 Install OQS-OpenSSL
-bash
+Last update https://github.com/open-quantum-safe/oqs-provider/
 
-git clone --branch OQS-OpenSSL_1_1_1-stable https://github.com/open-quantum-safe/openssl.git
-cd openssl
-./config
-make -j$(nproc)
-sudo make install
+✅ Steps to Build & Install oqs-provider (Post-Quantum OpenSSL)
+Follow these steps to correctly install and integrate Open Quantum Safe (OQS) Provider with OpenSSL.
 
-🔸 Step 2: Generate a Hybrid Key Pair (ECDH + Kyber)
-Use OQS-OpenSSL to create a hybrid key exchange mechanism that includes both ECDH and Kyber.
+1️⃣ Install Dependencies
+Ensure your system has the necessary dependencies installed:
+sudo apt update && sudo apt install -y \
+    cmake gcc g++ ninja-build perl python3-pytest \
+    python3-pytest-xdist python3-cryptography \
+    curl unzip doxygen graphviz
+    
+2️⃣ Clone the OQS-Provider Repository
+cd ~/PQC  # Navigate to your PQC working directory
+git clone --recursive https://github.com/open-quantum-safe/oqs-provider.git
+cd oqs-provider
 
-bash
+3️⃣ Build and Install OpenSSL 3 with OQS Support
+Since OQS-Provider works with OpenSSL 3, we need to build it correctly:
+mkdir build && cd build
+cmake -GNinja ..
+ninja
+sudo ninja install
 
-openssl req -x509 -new -newkey oqs_kem_default+ecdh_secp384r1 -keyout hybrid_key.pem -out hybrid_cert.pem -nodes -days 365
-oqs_kem_default = Uses Kyber-768 as the default PQC algorithm.
-ecdh_secp384r1 = Classical ECDH key exchange for backward compatibility.
+4️⃣ Verify OpenSSL Installation
+openssl list -providers
+
+5️⃣ Test PQC Algorithms
+openssl list -signature-algorithms | grep OQS
+openssl list -kem-algorithms | grep OQS
+
+
+🔸 Step 2: Generate a Hybrid Key Pair ECDSA (classical) + PQC signature certificate using Dilithium2.
+openssl genpkey -algorithm dilithium2 -out server_dilithium2.key -provider oqsprovider
+openssl req -new -key server_dilithium2.key -out server_dilithium2.csr -provider oqsprovider
+openssl req -x509 -days 365 -key server_dilithium2.key -in server_dilithium2.csr \
+  -out server_dilithium2.crt -provider oqsprovider
+
+
 🔸 Step 3: Configure OpenSSL Server with Hybrid TLS
-Edit the OpenSSL configuration file (openssl.cnf) and enable hybrid key exchange:
+openssl s_server -cert server_dilithium2.crt -key server_dilithium2.key \
+  -provider oqsprovider -www
 
-bash
 
-[oqs_tls]
-keyExchangeAlgorithms = OQS_KEM_Kyber768+ECDH_secp384r1
-Start the TLS server with the hybrid key:
-
-bash
-
-openssl s_server -cert hybrid_cert.pem -key hybrid_key.pem -tls1_3 -www
 🔸 Step 4: Test the Connection
-On the client side, test the TLS connection using OpenSSL:
+openssl s_client -connect localhost:4433 -provider oqsprovider
 
-bash
-
-openssl s_client -connect localhost:4433 -groups OQS_KEM_Kyber768+ECDH_secp384r1
-
-If successful, the session key will be established using both Kyber and ECDH, ensuring security against classical and quantum threats.
+If successful, you should see a successful TLS handshake.
+✅ Expected Output:
+New, TLSv1.3, Cipher is OQS_KEM_KYBER512 with TLS_AES_128_GCM_SHA256
 
 ________________________________________________________________________________________
 
