@@ -4,39 +4,39 @@ from Crypto.Random import get_random_bytes
 from Crypto.PublicKey import RSA
 import hashlib
 
-# Funzione per cifrare il messaggio con AES CBC
+# Function to encrypt a message using AES CBC mode
 def aes_cbc_encrypt(key, iv, plaintext):
     cipher = AES.new(key, AES.MODE_CBC, iv)
     ciphertext = cipher.encrypt(pad(plaintext.encode(), AES.block_size))
     return ciphertext
 
-# Funzione per decifrare il messaggio con AES CBC
+# Function to decrypt a message using AES CBC mode
 def aes_cbc_decrypt(key, iv, ciphertext):
     cipher = AES.new(key, AES.MODE_CBC, iv)
     plaintext = unpad(cipher.decrypt(ciphertext), AES.block_size)
     return plaintext.decode()
 
-# Funzione per generare una chiave simmetrica AES e un IV
+# Function to generate a symmetric AES key and an initialization vector (IV)
 def generate_aes_key_iv():
-    key = get_random_bytes(16)  # AES-128
-    iv = get_random_bytes(AES.block_size)  # Vettore di inizializzazione
+    key = get_random_bytes(16)  # AES-128 key (16 bytes)
+    iv = get_random_bytes(AES.block_size)  # Initialization Vector
     return key, iv
 
-# Simulazione di un attacco CPA (Chosen Plaintext Attack)
+# Simulation of a Chosen Plaintext Attack (CPA)
 def chosen_plaintext_attack(plaintext1, plaintext2):
-    # Generazione della chiave AES e dell'IV
+    # Generate AES encryption key and IV
     key, iv = generate_aes_key_iv()
 
-    # Cifriamo entrambi i testi in chiaro
+    # Encrypt both plaintext messages
     ciphertext1 = aes_cbc_encrypt(key, iv, plaintext1)
     ciphertext2 = aes_cbc_encrypt(key, iv, plaintext2)
 
-    # Avversario che cerca di distinguere i testi cifrati
-    # Supponiamo che l'attaccante abbia accesso ai due testi cifrati e debba determinare quale testo in chiaro corrisponde al quale.
-    # In un caso IND-CPA sicuro, l'attaccante non dovrebbe essere in grado di distinguere tra i due testi cifrati.
+    # An attacker attempts to distinguish between the two ciphertexts
+    # In a secure IND-CPA scenario, the attacker should not be able to determine
+    # which plaintext corresponds to which ciphertext.
     return ciphertext1, ciphertext2
 
-# Eseguiamo l'attacco con due testi in chiaro
+# Running the attack with two plaintext messages
 plaintext1 = "This is a confidential message!"
 plaintext2 = "This is another confidential message!"
 ciphertext1, ciphertext2 = chosen_plaintext_attack(plaintext1, plaintext2)
@@ -44,5 +44,5 @@ ciphertext1, ciphertext2 = chosen_plaintext_attack(plaintext1, plaintext2)
 print("Ciphertext 1:", ciphertext1.hex())
 print("Ciphertext 2:", ciphertext2.hex())
 
-# In una situazione reale, l'attaccante non dovrebbe essere in grado di distinguere tra i due ciphertext
-# senza conoscere la chiave di cifratura.
+# In a real-world scenario, the attacker should not be able to distinguish
+# between the two ciphertexts without knowing the encryption key.
